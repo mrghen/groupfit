@@ -27,7 +27,7 @@ class FitbitOauthClient(object):
     request_token_url = "%s/oauth/request_token" % API_ENDPOINT
     access_token_url = "%s/oauth/access_token" % API_ENDPOINT
     authorization_url = "%s/oauth/authorize" % AUTHORIZE_ENDPOINT
-    callback_uri = "http://groupfit.unet.brandeis.edu"
+    callback_uri = "http://groupfit.unet.brandeis.edu/flask/callback"
 
     def __init__(self, client_key, client_secret, resource_owner_key=None,
                  resource_owner_secret=None, user_id=None, callback_uri=callback_uri,
@@ -44,7 +44,7 @@ class FitbitOauthClient(object):
         string for the user to copy and we'll have to ask them to paste it for
         us and read it that way.
         """
-
+        
         self.session = requests.Session()
         self.client_key = client_key
         self.client_secret = client_secret
