@@ -6,7 +6,7 @@
                     API.
     Changelog:      2015/02/19 - Initial creation
 """
-from flask import Flask, session, redirect, url_for, escape, request, g
+from flask import Flask, session, redirect, url_for, escape, request, g, render_template
 import logging
 from logging import Formatter
 from logging import FileHandler
@@ -45,8 +45,7 @@ def hello_world():
         raise
 
     app.logger.debug('* Authorize the request token in your browser\n')
-    return '<center><a href="%s">Authorize GroupFit</a></center>' % client.authorize_token_url()
-
+    return render_template('auth.html', link=client.authorize_token_url())
 
 @app.route('/callback', methods=['GET'])
 def callback():
@@ -56,14 +55,16 @@ def callback():
     token = client.fetch_access_token(oauth_verifier, token=oauth_token)
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
-    try:
-        c.execute("INSERT INTO users VALUES ('%s', '%s', '%s')" % (token['encoded_user_id'], token['oauth_token'], token['oauth_token_secret']))
-    except:
-        print "Unexpected error:", sys.exc_info()
-        raise
+    # Check if the user exists
+    c.execute("SELECT * FROM users  WHERE encoded_user_id = '%s'" % token['encoded_user_id'])
+    if c.fetchone() != None:
+        # Delete the old record
+        c.execute("DELETE FROM users WHERE  encoded_user_id = '%s'" % token['encoded_user_id'])
+    c.execute("INSERT INTO users VALUES ('%s', '%s', '%s')" % (token['encoded_user_id'], token['oauth_token'], token['oauth_token_secret']))
     conn.commit()
     conn.close() 
-    return "Success" 
+    return render_template('callback.html')
+ 
 
 if __name__ == '__main__':
     """ Set up file debugging"""
